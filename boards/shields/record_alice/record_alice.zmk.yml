@@ -2,6 +2,8 @@ file_format: "1"
 id: record_alice
 name: Record Alice
 type: shield
+url: https://github.com/qkdxorjs1002/zmk-config
 requires: [pro_micro]
 features:
   - keys
+  - studio
