@@ -1,8 +1,12 @@
 file_format: "1"
-id: record_alice
-name: Record Alice
+id: splint
+name: Splint
 type: shield
 url: https://github.com/qkdxorjs1002/zmk-config
+requires: [pro_micro]
 features:
   - keys
   - studio
+siblings:
+  - splint_left
+  - splint_right
