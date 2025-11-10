@@ -20,6 +20,3 @@
 ---
 board: [ "nice_nano_v2" ]
 shield: [ "splint_left", "splint_right" ]
-include:
-  - board: nice_nano_v2
-    shield: splint
