@@ -1,0 +1,9 @@
+/ {
+    leds {
+        compatible = "gpio-leds";
+        status_led: status_led {
+            gpios = <&gpio0 15 GPIO_ACTIVE_LOW>;
+            label = "STATUS_LED";
+        };
+    };
+};
