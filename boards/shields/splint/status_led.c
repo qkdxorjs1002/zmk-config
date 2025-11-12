@@ -37,6 +37,7 @@ static void adv_blink_fn(struct k_work *work) {
 }
 
 static void conn_blink_off_fn(struct k_work *work) { led_set(false); }
+
 static void conn_blink_tick_fn(struct k_work *work) {
     if (suspended || seq_running || !is_connected) return;
     led_set(true);
@@ -73,7 +74,6 @@ static void seq_start(int count, int on_ms, int off_ms) {
 
     k_work_cancel_delayable(&adv_blink_work);
     k_work_cancel_delayable(&conn_blink_tick_work);
-
     k_work_schedule(&seq_blink_work, K_NO_WAIT);
 }
 
@@ -93,7 +93,7 @@ static void state_eval_fn(struct k_work *work) {
     k_work_schedule(&state_eval_work, K_MSEC(250));
 }
 
-static int status_led_listener(const struct zmk_event_header *eh) {
+static int status_led_listener(const zmk_event_t *eh) {
     if (is_zmk_ble_active_profile_changed(eh)) {
         int n = zmk_ble_active_profile_index() + 1;
         seq_start(n, 120, 120);
@@ -107,7 +107,9 @@ static int status_led_listener(const struct zmk_event_header *eh) {
     }
 
     if (is_zmk_activity_state_changed(eh)) {
-        const struct zmk_activity_state_changed *ev = cast_zmk_activity_state_changed(eh);
+        const struct zmk_activity_state_changed *ev = as_zmk_activity_state_changed(eh);
+        if (!ev) return ZMK_EV_EVENT_BUBBLE;
+
         if (ev->state == ZMK_ACTIVITY_SLEEP) {
             suspended = true;
             k_work_cancel_delayable(&adv_blink_work);
@@ -119,11 +121,10 @@ static int status_led_listener(const struct zmk_event_header *eh) {
             suspended = false;
             k_work_schedule(&state_eval_work, K_NO_WAIT);
             if (!seq_running) {
-                if (zmk_ble_active_profile_is_connected()) {
-                    is_connected = true;
+                is_connected = zmk_ble_active_profile_is_connected();
+                if (is_connected) {
                     k_work_schedule(&conn_blink_tick_work, K_MSEC(1000));
                 } else {
-                    is_connected = false;
                     k_work_schedule(&adv_blink_work, K_MSEC(300));
                 }
             }
@@ -143,11 +144,11 @@ static int status_led_init(void) {
     if (!device_is_ready(led.port)) return -ENODEV;
     gpio_pin_configure_dt(&led, GPIO_OUTPUT_INACTIVE);
 
-    k_work_init_delayable(&adv_blink_work, adv_blink_fn);
-    k_work_init_delayable(&conn_blink_tick_work, conn_blink_tick_fn);
-    k_work_init_delayable(&conn_blink_off_work, conn_blink_off_fn);
-    k_work_init_delayable(&state_eval_work, state_eval_fn);
-    k_work_init_delayable(&seq_blink_work, seq_blink_fn);
+    k_work_init_delayable(&adv_blink_work,        adv_blink_fn);
+    k_work_init_delayable(&conn_blink_tick_work,  conn_blink_tick_fn);
+    k_work_init_delayable(&conn_blink_off_work,   conn_blink_off_fn);
+    k_work_init_delayable(&state_eval_work,       state_eval_fn);
+    k_work_init_delayable(&seq_blink_work,        seq_blink_fn);
 
     suspended = false;
     k_work_schedule(&state_eval_work, K_NO_WAIT);
