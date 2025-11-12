@@ -40,7 +40,7 @@ static void conn_blink_tick_fn(struct k_work *work) {
     if (suspended || seq_running || !is_connected) return;
     led_set(true);
     k_work_schedule(&conn_blink_off_work, K_MSEC(50));
-    k_work_schedule(&conn_blink_tick_work, K_MSEC(1000));
+    k_work_schedule(&conn_blink_tick_work, K_MSEC(5000));
 }
 
 static void seq_blink_fn(struct k_work *work) {
@@ -48,7 +48,7 @@ static void seq_blink_fn(struct k_work *work) {
     if (seq_remaining <= 0) {
         seq_running = false;
         led_set(false);
-        if (is_connected) k_work_schedule(&conn_blink_tick_work, K_MSEC(1000));
+        if (is_connected) k_work_schedule(&conn_blink_tick_work, K_MSEC(5000));
         else k_work_schedule(&adv_blink_work, K_MSEC(300));
         return;
     }
@@ -76,7 +76,7 @@ static void state_eval_fn(struct k_work *work) {
         led_set(false);
         k_work_cancel_delayable(&adv_blink_work);
         k_work_cancel_delayable(&conn_blink_tick_work);
-        if (is_connected) k_work_schedule(&conn_blink_tick_work, K_MSEC(1000));
+        if (is_connected) k_work_schedule(&conn_blink_tick_work, K_MSEC(5000));
         else k_work_schedule(&adv_blink_work, K_MSEC(300));
     }
     k_work_schedule(&state_eval_work, K_MSEC(250));
@@ -111,7 +111,7 @@ static int status_led_listener(const zmk_event_t *eh) {
             k_work_schedule(&state_eval_work, K_NO_WAIT);
             if (!seq_running) {
                 is_connected = zmk_ble_active_profile_is_connected();
-                if (is_connected) k_work_schedule(&conn_blink_tick_work, K_MSEC(1000));
+                if (is_connected) k_work_schedule(&conn_blink_tick_work, K_MSEC(5000));
                 else k_work_schedule(&adv_blink_work, K_MSEC(300));
             }
         }
