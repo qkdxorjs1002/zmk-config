@@ -11,7 +11,7 @@
 
 / {
     behaviors {
-        &off_l = &mt {
+        off_l = &ht {
             bindings = <&kp SLEEP>, <&soft_off>;
         };
     };
