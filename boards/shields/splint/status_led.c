@@ -1,11 +1,17 @@
 #include <zephyr/kernel.h>
 #include <zephyr/drivers/gpio.h>
 #include <zmk/event_manager.h>
-#include <zmk/events/ble_active_profile_changed.h>
-#include <zmk/events/layer_state_changed.h>
 #include <zmk/events/activity_state_changed.h>
+
+#if IS_ENABLED(CONFIG_ZMK_BLE)
+#include <zmk/events/ble_active_profile_changed.h>
 #include <zmk/ble.h>
+#endif
+
+#if IS_ENABLED(CONFIG_ZMK_KEYMAP)
+#include <zmk/events/layer_state_changed.h>
 #include <zmk/keymap.h>
+#endif
 
 static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(DT_NODELABEL(status_led), gpios);
 
@@ -96,12 +102,14 @@ static int status_led_listener(const zmk_event_t *eh) {
     }
 #endif
 
+#if IS_ENABLED(CONFIG_ZMK_KEYMAP)
     const struct zmk_layer_state_changed *ls = as_zmk_layer_state_changed(eh);
     if (ls) {
         int n = zmk_keymap_highest_layer_active() + 1;
         seq_start(n, 90, 90);
         return ZMK_EV_EVENT_BUBBLE;
     }
+#endif
 
     const struct zmk_activity_state_changed *ac = as_zmk_activity_state_changed(eh);
     if (ac) {
@@ -132,10 +140,15 @@ static int status_led_listener(const zmk_event_t *eh) {
 }
 
 ZMK_LISTENER(status_led, status_led_listener);
+
 #if IS_ENABLED(CONFIG_ZMK_BLE)
 ZMK_SUBSCRIPTION(status_led, zmk_ble_active_profile_changed);
 #endif
+
+#if IS_ENABLED(CONFIG_ZMK_KEYMAP)
 ZMK_SUBSCRIPTION(status_led, zmk_layer_state_changed);
+#endif
+
 ZMK_SUBSCRIPTION(status_led, zmk_activity_state_changed);
 
 static int status_led_init(void) {
