@@ -15,7 +15,7 @@
             compatible = "zmk,behavior-hold-tap";
             flavor = "tap-preferred";
             tapping-term-ms = <200>;
-            bindings = <&soft_off>, <&kp K_PWR>;
+            bindings = <&soft_off &kp K_PWR>;
             display-name = "Off-Tap";
         };
     };
