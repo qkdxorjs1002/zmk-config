@@ -11,15 +11,6 @@
 
 / {
     behaviors {
-        llt: long_lt {
-            compatible = "zmk,behavior-hold-tap";
-            #binding-cells = <2>;
-            flavor = "tap-preferred";
-            tapping-term-ms = <500>;
-            bindings = <&mo>, <&kp>;
-            display-name = "Long-lt";
-        };
-
         hlt: hold_layer {
             compatible = "zmk,behavior-hold-tap";
             #binding-cells = <2>;
@@ -50,7 +41,7 @@
 &kp INSERT      &kp TAB      &kp Q        &kp W        &kp E        &kp R        &kp T        &kp Y        &kp U        &kp I        &kp O        &kp P        &kp LBKT     &kp RBKT     &kp BSLH
 &kp DELETE      &hlt 1 CAPS  &kp A        &kp S        &kp D        &kp F        &kp G        &kp H        &kp J        &kp K        &kp L        &kp SEMI     &kp SQT      &kp ENTER
                 &kp LSHFT    &kp Z        &kp X        &kp C        &kp V        &kp B        &kp B        &kp N        &kp M        &kp COMMA    &kp DOT      &kp SLASH    &kp UP       &kp RSHFT
-                &kp LCTRL    &kp LALT     &kp LGUI                  &kp SPACE                 &kp SPACE                 &llt 1 RALT                            &kp LEFT     &kp DOWN     &kp RIGHT
+                &kp LCTRL    &kp LALT     &kp LGUI                  &kp SPACE                 &kp SPACE                 &hlt 1 RALT                            &kp LEFT     &kp DOWN     &kp RIGHT
             >;
         };
 
@@ -58,11 +49,23 @@
             display-name = "Function Layer";
 
             bindings = <
-&oft 0 C_PWR    &out OUT_TOG &kp F1       &kp F2       &kp F3       &kp F4       &kp F5       &kp F6       &kp F7       &kp F8       &kp F9       &kp F10      &kp F11      &kp F12      &trans
-&kp PG_UP       &kp C_VOL_UP &bt BT_CLR   &bt BT_SEL 0 &bt BT_SEL 1 &bt BT_SEL 2 &bt BT_SEL 3 &trans       &trans       &trans       &trans       &trans       &trans       &trans       &trans
+&oft 0 C_PWR    &trans       &kp F1       &kp F2       &kp F3       &kp F4       &kp F5       &kp F6       &kp F7       &kp F8       &kp F9       &kp F10      &kp F11      &kp F12      &trans
+&kp PG_UP       &kp C_VOL_UP &trans       &trans       &trans       &trans       &trans       &trans       &trans       &trans       &trans       &trans       &trans       &trans       &trans
 &kp PG_DN       &trans       &trans       &trans       &trans       &trans       &trans       &trans       &trans       &trans       &trans       &trans       &trans       &trans
                 &kp C_VOL_DN &trans       &trans       &trans       &trans       &trans       &trans       &trans       &trans       &trans       &trans       &mkp LCLK      &mmv MOVE_UP   &mkp RCLK
-                &trans       &trans       &trans                    &trans                    &trans                    &trans                                 &mmv MOVE_LEFT &mmv MOVE_DOWN &mmv MOVE_RIGHT
+                &trans       &trans       &hlt 2 LGUI               &trans                    &trans                    &trans                                 &mmv MOVE_LEFT &mmv MOVE_DOWN &mmv MOVE_RIGHT
+            >;
+        };
+
+        profile_layer {
+            display-name = "Profile Layer";
+
+            bindings = <
+&bt BT_CLR_ALL  &bt BT_CLR   &bt BT_SEL 0 &bt BT_SEL 1 &bt BT_SEL 2 &bt BT_SEL 3 &bt BT_SEL 4 &trans       &trans       &trans       &trans       &trans       &trans       &trans       &trans
+&trans          &out OUT_TOG &trans       &trans       &trans       &trans       &trans       &trans       &trans       &trans       &trans       &trans       &trans       &trans       &trans
+&trans          &trans       &trans       &trans       &trans       &trans       &trans       &trans       &trans       &trans       &trans       &trans       &trans       &trans
+                &trans       &trans       &trans       &trans       &trans       &trans       &trans       &trans       &trans       &trans       &trans       &trans       &trans       &trans
+                &trans       &trans       &trans                    &trans                    &trans                    &trans                                 &trans       &trans       &trans
             >;
         };
     };
