@@ -21,8 +21,6 @@ static bool seq_running = false;
 static int seq_remaining = 0;
 static int seq_on_ms = 100, seq_off_ms = 100;
 
-static int last_layer = -1;
-
 static inline void led_set(bool on) {
     if (!device_is_ready(led.port)) return;
     gpio_pin_set_dt(&led, on ? 0 : 1);
@@ -42,7 +40,7 @@ static void conn_blink_tick_fn(struct k_work *work) {
     if (suspended || seq_running || !is_connected) return;
     led_set(true);
     k_work_schedule(&conn_blink_off_work, K_MSEC(50));
-    k_work_schedule(&conn_blink_tick_work, K_MSEC(5000));
+    k_work_schedule(&conn_blink_tick_work, K_MSEC(1000));
 }
 
 static void seq_blink_fn(struct k_work *work) {
@@ -50,7 +48,7 @@ static void seq_blink_fn(struct k_work *work) {
     if (seq_remaining <= 0) {
         seq_running = false;
         led_set(false);
-        if (is_connected) k_work_schedule(&conn_blink_tick_work, K_MSEC(5000));
+        if (is_connected) k_work_schedule(&conn_blink_tick_work, K_MSEC(1000));
         else k_work_schedule(&adv_blink_work, K_MSEC(300));
         return;
     }
@@ -72,28 +70,16 @@ static void seq_start(int count, int on_ms, int off_ms) {
 }
 
 static void state_eval_fn(struct k_work *work) {
-    bool now_conn = zmk_ble_active_profile_is_connected();
-    if (!suspended && now_conn != is_connected && !seq_running) {
-        is_connected = now_conn;
+    bool now = zmk_ble_active_profile_is_connected();
+    if (!suspended && now != is_connected && !seq_running) {
+        is_connected = now;
         led_set(false);
         k_work_cancel_delayable(&adv_blink_work);
         k_work_cancel_delayable(&conn_blink_tick_work);
-        if (is_connected) k_work_schedule(&conn_blink_tick_work, K_MSEC(5000));
+        if (is_connected) k_work_schedule(&conn_blink_tick_work, K_MSEC(1000));
         else k_work_schedule(&adv_blink_work, K_MSEC(300));
     }
-
-    int now_layer = zmk_keymap_highest_layer_active();
-    if (!suspended && !seq_running) {
-        if (now_layer != last_layer) {
-            last_layer = now_layer;
-            if (now_layer >= 0) {
-                int n = now_layer + 1;
-                seq_start(n, 90, 90);
-            }
-        }
-    }
-
-    k_work_schedule(&state_eval_work, K_MSEC(120));
+    k_work_schedule(&state_eval_work, K_MSEC(250));
 }
 
 static int status_led_listener(const zmk_event_t *eh) {
@@ -125,7 +111,7 @@ static int status_led_listener(const zmk_event_t *eh) {
             k_work_schedule(&state_eval_work, K_NO_WAIT);
             if (!seq_running) {
                 is_connected = zmk_ble_active_profile_is_connected();
-                if (is_connected) k_work_schedule(&conn_blink_tick_work, K_MSEC(5000));
+                if (is_connected) k_work_schedule(&conn_blink_tick_work, K_MSEC(1000));
                 else k_work_schedule(&adv_blink_work, K_MSEC(300));
             }
         }
@@ -136,6 +122,7 @@ static int status_led_listener(const zmk_event_t *eh) {
 }
 
 ZMK_LISTENER(status_led, status_led_listener);
+
 ZMK_SUBSCRIPTION(status_led, zmk_ble_active_profile_changed);
 ZMK_SUBSCRIPTION(status_led, zmk_layer_state_changed);
 ZMK_SUBSCRIPTION(status_led, zmk_activity_state_changed);
@@ -149,7 +136,6 @@ static int status_led_init(void) {
     k_work_init_delayable(&state_eval_work, state_eval_fn);
     k_work_init_delayable(&seq_blink_work, seq_blink_fn);
     suspended = false;
-    last_layer = zmk_keymap_highest_layer_active();
     k_work_schedule(&state_eval_work, K_NO_WAIT);
     return 0;
 }
