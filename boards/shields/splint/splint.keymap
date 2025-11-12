@@ -11,10 +11,13 @@
 
 / {
     behaviors {
-        off_l: off_l {
+        ofl: off_l {
             compatible = "zmk,behavior-hold-tap";
-            label = "OFF_L";
+            #binding-cells = <2>;
+            flavor = "hold-preferred";
+            tapping-term-ms = <200>;
             bindings = <&kp SLEEP>, <&soft_off>;
+            display-name = "OFF-L";
         };
     };
 
@@ -37,7 +40,7 @@
             display-name = "Function Layer";
 
             bindings = <
-&off_l          &out OUT_TOG &kp F1       &kp F2       &kp F3       &kp F4       &kp F5       &kp F6       &kp F7       &kp F8       &kp F9       &kp F10      &kp F11      &kp F12      &trans
+&ofl            &out OUT_TOG &kp F1       &kp F2       &kp F3       &kp F4       &kp F5       &kp F6       &kp F7       &kp F8       &kp F9       &kp F10      &kp F11      &kp F12      &trans
 &trans          &bt BT_CLR   &trans       &trans       &trans       &trans       &trans       &trans       &trans       &trans       &trans       &trans       &trans       &trans       &trans
 &trans          &bt BT_SEL 0 &trans       &trans       &trans       &trans       &trans       &trans       &trans       &trans       &trans       &trans       &trans       &trans
                 &bt BT_SEL 1 &trans       &trans       &trans       &trans       &trans       &trans       &trans       &trans       &trans       &trans       &mkp LCLK      &mmv MOVE_UP   &mkp RCLK
