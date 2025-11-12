@@ -14,7 +14,7 @@
         llt: long_lt {
             compatible = "zmk,behavior-hold-tap";
             #binding-cells = <0>;
-            flavor = "hold-preferred";
+            flavor = "tap-preferred";
             tapping-term-ms = <500>;
             bindings = <&mo>, <&kp>;
             display-name = "Long-lt";
