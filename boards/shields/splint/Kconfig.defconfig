@@ -9,6 +9,10 @@ config ZMK_KEYBOARD_NAME
 config ZMK_SPLIT_ROLE_CENTRAL
     default y
 
+config SPLINT_STATUS_LED
+    bool "Enable indicator"
+    default y
+
 endif
 
 if SHIELD_SPLINT_LEFT || SHIELD_SPLINT_RIGHT
