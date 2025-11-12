@@ -11,7 +11,7 @@
 
 / {
     behaviors {
-        off_l {
+        off_l: off_l {
             compatible = "zmk,behavior-hold-tap";
             label = "OFF_L";
             bindings = <&kp SLEEP>, <&soft_off>;
