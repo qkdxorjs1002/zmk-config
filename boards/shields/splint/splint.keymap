@@ -13,7 +13,7 @@
     behaviors {
         llt: long_lt {
             compatible = "zmk,behavior-hold-tap";
-            #binding-cells = <0>;
+            #binding-cells = <2>;
             flavor = "tap-preferred";
             tapping-term-ms = <500>;
             bindings = <&mo>, <&kp>;
@@ -22,7 +22,7 @@
 
         hlt: hold_layer {
             compatible = "zmk,behavior-hold-tap";
-            #binding-cells = <0>;
+            #binding-cells = <2>;
             flavor = "hold-preferred";
             tapping-term-ms = <200>;
             bindings = <&mo>, <&kp>;
