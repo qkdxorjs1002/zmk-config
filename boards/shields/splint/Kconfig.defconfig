@@ -9,11 +9,28 @@ config ZMK_KEYBOARD_NAME
 config ZMK_SPLIT_ROLE_CENTRAL
     default y
 
+config ZMK_SPLIT_BLE_CENTRAL_BATTERY_LEVEL_PROXY
+    default y
+
 endif
+
+
+
+if SHIELD_SPLINT_RIGHT
+
+config ZMK_SPLIT_BLE_CENTRAL_BATTERY_LEVEL_FETCHING
+    default y
+
+endif
+
+
 
 if SHIELD_SPLINT_LEFT || SHIELD_SPLINT_RIGHT
 
 config ZMK_SPLIT
+    default y
+
+config ZMK_BATTERY_REPORTING
     default y
 
 endif
