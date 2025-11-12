@@ -13,10 +13,10 @@
     behaviors {
         ofl: off_l {
             compatible = "zmk,behavior-hold-tap";
-            #binding-cells = <2>;
+            #binding-cells = <0>;
             flavor = "hold-preferred";
             tapping-term-ms = <200>;
-            bindings = <&kp SLEEP>, <&soft_off>;
+            bindings = <&kp SLEEP &soft_off>;
             display-name = "OFF-L";
         };
     };
