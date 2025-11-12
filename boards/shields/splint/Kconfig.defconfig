@@ -15,5 +15,17 @@ if SHIELD_SPLINT_LEFT || SHIELD_SPLINT_RIGHT
 
 config ZMK_SPLIT
     default y
+    
+config ZMK_SLEEP
+    default y
+
+config ZMK_PM_SOFT_OFF
+    default y
+
+config ZMK_KSCAN_DEBOUNCE_PRESS_MS
+    default 0
+
+config ZMK_POINTING
+    default y
 
 endif
