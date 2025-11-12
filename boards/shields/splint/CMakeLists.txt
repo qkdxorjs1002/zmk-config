@@ -1,7 +1,1 @@
-zephyr_library()
-zephyr_library_include_directories(${ZEPHYR_BASE}/drivers)
-zephyr_library_include_directories(${CMAKE_SOURCE_DIR}/include)
-zephyr_library_include_directories(${ZEPHYR_CURRENT_MODULE_DIR}/include)
-zephyr_library_include_directories(${ZEPHYR_CURRENT_CMAKE_DIR}/include)
-zephyr_library_include_directories(include)
-zephyr_library_sources(status_led.c)
+target_sources(app PRIVATE status_led.c)
