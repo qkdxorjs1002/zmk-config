@@ -2,16 +2,10 @@
 #include <zephyr/drivers/gpio.h>
 #include <zmk/event_manager.h>
 #include <zmk/events/activity_state_changed.h>
-
-#if IS_ENABLED(CONFIG_ZMK_BLE)
 #include <zmk/events/ble_active_profile_changed.h>
 #include <zmk/ble.h>
-#endif
-
-#if IS_ENABLED(CONFIG_ZMK_KEYMAP)
 #include <zmk/events/layer_state_changed.h>
 #include <zmk/keymap.h>
-#endif
 
 static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(DT_NODELABEL(status_led), gpios);
 
@@ -26,6 +20,8 @@ static bool suspended = false;
 static bool seq_running = false;
 static int seq_remaining = 0;
 static int seq_on_ms = 100, seq_off_ms = 100;
+
+static int last_layer = -1;
 
 static inline void led_set(bool on) {
     if (!device_is_ready(led.port)) return;
@@ -46,7 +42,7 @@ static void conn_blink_tick_fn(struct k_work *work) {
     if (suspended || seq_running || !is_connected) return;
     led_set(true);
     k_work_schedule(&conn_blink_off_work, K_MSEC(50));
-    k_work_schedule(&conn_blink_tick_work, K_MSEC(1000));
+    k_work_schedule(&conn_blink_tick_work, K_MSEC(5000));
 }
 
 static void seq_blink_fn(struct k_work *work) {
@@ -54,7 +50,7 @@ static void seq_blink_fn(struct k_work *work) {
     if (seq_remaining <= 0) {
         seq_running = false;
         led_set(false);
-        if (is_connected) k_work_schedule(&conn_blink_tick_work, K_MSEC(1000));
+        if (is_connected) k_work_schedule(&conn_blink_tick_work, K_MSEC(5000));
         else k_work_schedule(&adv_blink_work, K_MSEC(300));
         return;
     }
@@ -76,40 +72,44 @@ static void seq_start(int count, int on_ms, int off_ms) {
 }
 
 static void state_eval_fn(struct k_work *work) {
-#if IS_ENABLED(CONFIG_ZMK_BLE)
-    bool now = zmk_ble_active_profile_is_connected();
-#else
-    bool now = false;
-#endif
-    if (!suspended && now != is_connected && !seq_running) {
-        is_connected = now;
+    bool now_conn = zmk_ble_active_profile_is_connected();
+    if (!suspended && now_conn != is_connected && !seq_running) {
+        is_connected = now_conn;
         led_set(false);
         k_work_cancel_delayable(&adv_blink_work);
         k_work_cancel_delayable(&conn_blink_tick_work);
-        if (is_connected) k_work_schedule(&conn_blink_tick_work, K_MSEC(1000));
+        if (is_connected) k_work_schedule(&conn_blink_tick_work, K_MSEC(5000));
         else k_work_schedule(&adv_blink_work, K_MSEC(300));
     }
-    k_work_schedule(&state_eval_work, K_MSEC(250));
+
+    int now_layer = zmk_keymap_highest_layer_active();
+    if (!suspended && !seq_running) {
+        if (now_layer != last_layer) {
+            last_layer = now_layer;
+            if (now_layer >= 0) {
+                int n = now_layer + 1;
+                seq_start(n, 90, 90);
+            }
+        }
+    }
+
+    k_work_schedule(&state_eval_work, K_MSEC(120));
 }
 
 static int status_led_listener(const zmk_event_t *eh) {
-#if IS_ENABLED(CONFIG_ZMK_BLE)
     const struct zmk_ble_active_profile_changed *ap = as_zmk_ble_active_profile_changed(eh);
     if (ap) {
         int n = zmk_ble_active_profile_index() + 1;
         seq_start(n, 120, 120);
         return ZMK_EV_EVENT_BUBBLE;
     }
-#endif
 
-#if IS_ENABLED(CONFIG_ZMK_KEYMAP)
     const struct zmk_layer_state_changed *ls = as_zmk_layer_state_changed(eh);
     if (ls) {
         int n = zmk_keymap_highest_layer_active() + 1;
         seq_start(n, 90, 90);
         return ZMK_EV_EVENT_BUBBLE;
     }
-#endif
 
     const struct zmk_activity_state_changed *ac = as_zmk_activity_state_changed(eh);
     if (ac) {
@@ -124,12 +124,8 @@ static int status_led_listener(const zmk_event_t *eh) {
             suspended = false;
             k_work_schedule(&state_eval_work, K_NO_WAIT);
             if (!seq_running) {
-#if IS_ENABLED(CONFIG_ZMK_BLE)
                 is_connected = zmk_ble_active_profile_is_connected();
-#else
-                is_connected = false;
-#endif
-                if (is_connected) k_work_schedule(&conn_blink_tick_work, K_MSEC(1000));
+                if (is_connected) k_work_schedule(&conn_blink_tick_work, K_MSEC(5000));
                 else k_work_schedule(&adv_blink_work, K_MSEC(300));
             }
         }
@@ -140,15 +136,8 @@ static int status_led_listener(const zmk_event_t *eh) {
 }
 
 ZMK_LISTENER(status_led, status_led_listener);
-
-#if IS_ENABLED(CONFIG_ZMK_BLE)
 ZMK_SUBSCRIPTION(status_led, zmk_ble_active_profile_changed);
-#endif
-
-#if IS_ENABLED(CONFIG_ZMK_KEYMAP)
 ZMK_SUBSCRIPTION(status_led, zmk_layer_state_changed);
-#endif
-
 ZMK_SUBSCRIPTION(status_led, zmk_activity_state_changed);
 
 static int status_led_init(void) {
@@ -160,6 +149,7 @@ static int status_led_init(void) {
     k_work_init_delayable(&state_eval_work, state_eval_fn);
     k_work_init_delayable(&seq_blink_work, seq_blink_fn);
     suspended = false;
+    last_layer = zmk_keymap_highest_layer_active();
     k_work_schedule(&state_eval_work, K_NO_WAIT);
     return 0;
 }
