@@ -1,1 +1,1 @@
-target_sources_ifdef(CONFIG_SPLINT_STATUS_LED app PRIVATE status_led.c)
+target_sources(app PRIVATE status_led.c)
